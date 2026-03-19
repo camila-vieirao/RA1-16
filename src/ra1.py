@@ -16,9 +16,11 @@ def lerArquivo(file_path: str) -> list:
         list: vetor de linhas
     """
     linhas = []
-    for line in open(file_path, 'r'):
-        print(line)
-        linhas.append(line)
+    with open(file_path, 'r') as f:
+        for line in f:
+            line = line.strip()
+            #print(line)
+            linhas.append(line)
     return linhas
 
 def parseExpressao():
@@ -35,6 +37,9 @@ def exibirResultados():
 
 if __name__ == "__main__":
     import sys
+    if len(sys.argv) < 2:
+        print(f"Uso: python {sys.argv[0]} <arquivo_entrada>")
+        sys.exit(1)
     arquivo = sys.argv[1]
     lerArquivo(arquivo)
 
