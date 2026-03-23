@@ -13,7 +13,7 @@ https://frankalcantara.com/lf/fase12026-1.html
 
 nome | usuário no GitHub
 --- | ---
-anabelly... | \
+Anabelly Sthephany Paiva Montibeller | [nabelly19](https://github.com/nabelly19) | \
 andressa... | \
 Camila Vieira de Oliveira | [camila-vieirao](https://github.com/camila-vieirao) | \
 guilherme... | \
