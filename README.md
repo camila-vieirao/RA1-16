@@ -16,7 +16,7 @@ nome | usuário no GitHub
 anabelly... | \
 andressa... | \
 Camila Vieira de Oliveira | [camila-vieirao](https://github.com/camila-vieirao) | \
-guilherme... | \
+Guilherme Ferraz Freire De Araujo | [Guilhermeffda](https://github.com/guilhermeffda) | \
 
 ## Execução
 1. Clone o repositório:
