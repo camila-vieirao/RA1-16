@@ -6,6 +6,8 @@
 #
 # NOME DO GRUPO: RA1-16
 
+from lexico_afd import ErroLexico, parseExpressao as parse_expressao_afd
+
 def lerArquivo(file_path: str) -> list:
     """
     Lê o arquivo de entrada e armazena as expressões para processamento.
@@ -23,8 +25,9 @@ def lerArquivo(file_path: str) -> list:
             linhas.append(line)
     return linhas
 
-def parseExpressao():
-    pass
+
+def parseExpressao(linha: str, tokens: list = None) -> list:
+    return parse_expressao_afd(linha, tokens)
 
 def executarExpressao():
     pass
