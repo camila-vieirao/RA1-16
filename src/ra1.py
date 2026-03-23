@@ -2,7 +2,7 @@
 # anabelly... | \
 # andressa... | \
 # Camila Vieira de Oliveira | camila-vieirao
-# guilherme... | \
+# Guilherme Ferraz | Guilhermeffda \
 #
 # NOME DO GRUPO: RA1-16
 
