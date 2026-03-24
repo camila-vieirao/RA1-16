@@ -1,5 +1,5 @@
 # INTEGRANTES:
-# anabelly... | \
+# Anabelly Sthephany Paiva Montibeller | nabelly19
 # andressa... | \
 # Camila Vieira de Oliveira | camila-vieirao
 # Guilherme Ferraz | Guilhermeffda \
