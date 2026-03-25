@@ -1,11 +1,18 @@
-# INTEGRANTES:
-# Anabelly Sthephany Paiva Montibeller | nabelly19
-# andressa... | \
-# Camila Vieira de Oliveira | camila-vieirao
-# guilherme... | \
+# ==============================================================================
+# Compilador RPN -> ARMv7 Assembly (Fase 1)
+# Analisador Léxico com Autômato Finito Determinístico e Gerador de Assembly
 #
-# NOME DO GRUPO: RA1-16
+# Integrantes do grupo (ordem alfabética):
+#   - Anabelly Sthephany Paiva Montibeller | nabelly19
+#   - Aluno2 Nome Sobrenome (@github_user2)
+#   - Camila Vieira de Oliveira | camila-vieirao
+#   - Guilherme Ferraz | Guilhermeffda 
+#
+# Grupo: RA1-16
+# Instituição: Pontifícia Universidade Católica do Paraná
+# ==============================================================================
 
+import sys
 from utils.gerar_assembly import (gerar_linha_assembly, build_assembly, reset_state)
 from utils.ler_arquivo import lerArquivo
 from utils.exibir_resultados import exibirResultados
@@ -42,13 +49,29 @@ def executarExpressao(tokens_por_linha: list) -> list:
 
     return resultados
 
-# ALUNO 4
-def main():
-    import sys
+# ==============================================================================
+# FUNÇÃO PRINCIPAL (main)
+# ==============================================================================
 
-    # 1o Verificação de argumento
-    if len(sys.argv) != 2:
-        print(f"Uso: python {sys.argv[0]} <arquivo_entrada>")
+def main():
+    """
+    Função principal do compilador.
+    Gerencia o fluxo de execução:
+    1. Lê argumentos da linha de comando
+    2. Executa testes se solicitado
+    3. Lê o arquivo de entrada
+    4. Analisa cada linha (analisador léxico)
+    5. Avalia expressões (para validação)
+    6. Gera código Assembly
+    7. Salva tokens e Assembly em arquivos
+    8. Exibe resultados
+    """
+
+    # Etapa de verificação de argumentos da linha de comando
+    if len(sys.argv) < 2:
+        print("Uso: python compilador.py <arquivo_teste> [--testes]")
+        print("  <arquivo_teste>  : arquivo com expressoes RPN")
+        print("  --testes         : executa testes automatizados")
         sys.exit(1)
 
     arquivo = sys.argv[1]
