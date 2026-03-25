@@ -37,7 +37,17 @@ def lerArquivo(nome_arquivo, linhas):
 
 
 def parseExpressao(linha: str, tokens: list = None) -> list:
-    pass
+    """Faz a análise léxica de uma linha e retorna o vetor de tokens.
+    Delega para o analisador léxico (AFD) em utils/lexico_afd.py.
+
+    Args:
+        linha (str): Linha de código-fonte a ser analisada.
+        tokens (list, optional): Lista para armazenar os tokens gerados.
+    Returns:
+        list: Vetor de tokens gerados pelo analisador léxico.
+    """
+    from utils.lexico_afd import parseExpressao as _lexico_parseExpressao
+    return _lexico_parseExpressao(linha, tokens)
 
 def executarExpressao():
     pass
@@ -267,8 +277,17 @@ if __name__ == "__main__":
     print("GERACAO DE ASSEMBLY ARMv7")
     print(f"{'=' * 60}")
     codigo_assembly = []
-    mock_todas_linhas_tokens = [[('LPAREN', '('), ('NUM', '1.5'), ('NUM', '2.5'), ('OP', '+'), ('RPAREN', ')')],[('LPAREN', '('), ('NUM', '1'), ('RES', 'RES'), ('RPAREN', ')')], [('LPAREN', '('), ('LPAREN', '('), ('NUM', '2.0'), ('NUM', '3.0'), ('OP', '*'), ('RPAREN', ')'), ('LPAREN', '('), ('NUM', '4.0'), ('NUM', '5.0'), ('OP', '+'), ('RPAREN', ')'), ('OP', '/'), ('RPAREN', ')')]]
-    gerarAssembly(mock_todas_linhas_tokens, codigo_assembly)
+
+    todas_linhas_tokens = []
+    for linha in linhas:
+        try:
+            tokens = parseExpressao(linha)
+            todas_linhas_tokens.append(tokens)
+        except Exception as e:
+            print(f"ERRO lexico na linha '{linha}': {e}")
+            sys.exit(1)
+
+    gerarAssembly(todas_linhas_tokens, codigo_assembly)
 
     nome_base = nome_arquivo.rsplit('.', 1)[0] if '.' in nome_arquivo else nome_arquivo
     nome_assembly = nome_base + ".s"
@@ -279,7 +298,6 @@ if __name__ == "__main__":
     print(f"  Assembly: {nome_assembly} ({len(codigo_assembly)} linhas)")
 
 
-#     parseExpressao()
 #     executarExpressao()
 #     exibirResultados()
 #
