@@ -1,5 +1,11 @@
 import sys
 
+# ==============================================================================
+# FUNÇÃO: lerArquivo
+# Realiza a leitura dos arquivos de entrada.
+#
+# ==============================================================================
+
 def lerArquivo(nome_arquivo, linhas):
     """
     Lê o arquivo de entrada contendo expressões RPN.
