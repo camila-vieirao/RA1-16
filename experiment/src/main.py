@@ -1,3 +1,4 @@
+import sys
 # INTEGRANTES:
 # Anabelly Sthephany Paiva Montibeller | nabelly19
 # andressa... | \
@@ -42,63 +43,116 @@ def executarExpressao(tokens_por_linha: list) -> list:
 
     return resultados
 
-# ALUNO 4
-def main():
-    import sys
+# ==============================================================================
+# FUNÇÃO PRINCIPAL (main)
+# ==============================================================================
 
-    # 1o Verificação de argumento
-    if len(sys.argv) != 2:
-        print(f"Uso: python {sys.argv[0]} <arquivo_entrada>")
+def main():
+    """
+    Função principal do compilador.
+    Gerencia o fluxo de execução:
+    1. Lê argumentos da linha de comando
+    2. Executa testes se solicitado
+    3. Lê o arquivo de entrada
+    4. Analisa cada linha (analisador léxico)
+    5. Avalia expressões (para validação)
+    6. Gera código Assembly
+    7. Salva tokens e Assembly em arquivos
+    8. Exibe resultados
+    """
+
+    # Etapa de VERIFICAÇÃO DE ARGUMENTOS da linha de comando
+    if len(sys.argv) < 2:
+        print("Uso: python compilador.py <arquivo_teste> [--testes]")
+        print("  <arquivo_teste>  : arquivo com expressoes RPN")
+        print("  --testes         : executa testes automatizados")
         sys.exit(1)
 
-    arquivo = sys.argv[1]
+    ## Implementar execução de testes
 
-    print(f"[INFO] Lendo arquivo: {arquivo}")
+    #Obtém o nome do arquivo 
+    nome_arquivo = sys.argv[1]
+    if nome_arquivo == '--testes':
+        if len(sys.argv) > 2:
+            nome_arquivo = sys.argv[2]
+        else:
+            return
 
-    # 2o Leitura do arquivo
-    linhas = lerArquivo(arquivo)
+    # Passo 1: Leitura do arquivo de entrada
+    print(f"\n{'=' * 60}")
+    print("Compilador RPN -> Assembly ARMv7")
+    print(f"Arquivo de entrada: {nome_arquivo}")
+    print(f"{'=' * 60}")
+
+    linhas = []
+    if not lerArquivo(nome_arquivo, linhas):
+        sys.exit(1)
+
+    print(f"\nLinhas lidas: {len(linhas)}")
+    for i, linha in enumerate(linhas):
+        print(f"  [{i}] {linha}")
 
     if not linhas:
         print("[ERRO] Arquivo vazio ou não encontrado.")
         sys.exit(1)
 
-    # Reset do estado do assembly
-    reset_state()
+    ## Reset do estado do assembly
+    ##reset_state()
 
-    tokens_por_linha = []
+    # Passo 2: Análise léxica de cada linha
+    print(f"\n{'=' * 60}")
+    print("ANALISE LEXICA")
+    print(f"{'=' * 60}")
 
-    # 3o Análise léxica (parte do aluno1)
+    todas_linhas_tokens = []
+    erro_lexico = False
+
     for i, linha in enumerate(linhas):
         tokens = []
-        parseExpressao(linha.strip(), tokens)
-        tokens_por_linha.append(tokens)
+        print(f"\n  Linha {i}: {linha}")
+        sucesso = parseExpressao(linha, tokens)
+        if sucesso:
+            print(f"    Tokens: {tokens}")
+            todas_linhas_tokens.append(tokens)
+        else:
+            print("    ERRO na analise lexica!")
+            erro_lexico = True
+            todas_linhas_tokens.append([])
 
-    # 4o Execução lógica (parte do aluno2)
-    resultados = executarExpressao(tokens_por_linha)
+    if erro_lexico:
+        print("\nAVISO: Erros encontrados na analise lexica.")
 
-    # 5o Geração de assembly (parte do aluno3)
-    codigo_assembly = ""
+    # Passo 3: Execução para validação (parte do aluno2)
+    resultados = []
+    memoria = {}
 
-    for tokens in tokens_por_linha:
-        gerar_linha_assembly(tokens, codigo_assembly)
+    for i, tokens in enumerate(todas_linhas_tokens):
+        if not tokens:
+            resultados.append(None)
+            continue
+        resultado = executarExpressao(tokens, resultados, memoria)
+        resultados.append(resultado)
+        if resultado is not None:
+            print(f"  Linha {i}: resultado = {resultado}")
+        else:
+            print(f"  Linha {i}: ERRO na execucao")
 
-    codigo_assembly = build_assembly()
-
-    # 6o Salvar assembly (mandatory)
-    with open("output.s", "w") as f:
-        f.write(codigo_assembly)
-
-    print("[INFO] Assembly gerado em output.s")
-
-    # 7o Salvar tokens (mandatory)
-    with open("tokens.txt", "w") as f:
-        for linha in tokens_por_linha:
-            f.write(" ".join(linha) + "\n")
-    
-    print("[INFO] Tokens salvos em tokens.txt")
-
-    # 8o Exibir resultados (parte do aluno4)
+    # Passo 4: Exibe resultados
     exibirResultados(resultados)
+
+    # Passo 5: Geração de assembly (parte do aluno3)
+    print(f"\n{'=' * 60}")
+    print("GERACAO DE ASSEMBLY ARMv7")
+    print(f"{'=' * 60}")
+
+    codigo_assembly = []
+    ##gerarAssembly(todas_linhas_tokens, codigo_assembly)
+
+    #Relacionar com salvamento do assembly em arquivo (gerarAssembly)
+
+    # Passo 6: Salvar tokens em arquivo
+    nome_tokens = "tokens.txt"
+    # implementar save de tokens
 
 if __name__ == "__main__":
     main()
