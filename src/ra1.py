@@ -6,42 +6,251 @@
 #
 # NOME DO GRUPO: RA1-16
 
-from pathlib import Path
 import sys
+import math
+import json
+from config import TOKEN_NUM, TOKEN_OP, TOKEN_LPAREN, TOKEN_RPAREN, TOKEN_RES, TOKEN_IDENT
+ 
 
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
-
-if str(PROJECT_ROOT) not in sys.path:
-    sys.path.insert(0, str(PROJECT_ROOT))
-
-from legacy.lexico_afd import ErroLexico, parseExpressao as parse_expressao_afd
-
-def lerArquivo(file_path: str) -> list:
-    """
-    Lê o arquivo de entrada e armazena as expressões para processamento.
-
-    Args: 
-        file_path (str): Caminho do arquivo de entrada.
+# ==============================================================================
+# FUNÇÃO: lerArquivo
+# ==============================================================================
+ 
+def lerArquivo(nome_arquivo, linhas):
+    """Lê o arquivo de entrada. Ignora linhas vazias.
+    
+    Args:
+        nome_arquivo (str): Caminho do arquivo a ser lido.
+        linhas (list): Lista para armazenar as linhas lidas (passada por referência).
     Returns:
-        list: vetor de linhas
+        bool: True se a leitura foi bem-sucedida, False caso contrário.
     """
-    linhas = []
-    with open(file_path, 'r') as f:
-        for line in f:
-            line = line.strip()
-            #print(line)
-            linhas.append(line)
-    return linhas
+    try:
+        with open(nome_arquivo, 'r', encoding='utf-8') as f:
+            for linha in f:
+                linha_limpa = linha.strip()
+                if linha_limpa:
+                    linhas.append(linha_limpa)
+        return True
+    except FileNotFoundError:
+        print(f"ERRO: Arquivo '{nome_arquivo}' nao encontrado.")
+        return False
+    except IOError as e:
+        print(f"ERRO: Nao foi possivel ler o arquivo '{nome_arquivo}': {e}")
+        return False
 
 
 def parseExpressao(linha: str, tokens: list = None) -> list:
-    return parse_expressao_afd(linha, tokens)
+    pass
 
 def executarExpressao():
     pass
 
-def gerarAssembly():
-    pass
+# ==============================================================================
+# FUNÇÃO: gerarAssembly
+#
+# Gera o código Assembly ARMv7 completo para todas as linhas do programa.
+# Recebe o vetor de tokens (saída do analisador léxico) — NÃO relê o arquivo.
+#
+# O fluxo completo é:
+#   1. Percorre cada lista de tokens (uma por linha) chamando
+#      _gerar_codigo_expressao, que gera Assembly recursivamente.
+#      Nessa etapa, o ContextoAssembly registra quais constantes e
+#      variáveis de memória são necessárias.
+#   2. Monta a seção .data com: constantes (pares .word IEEE 754),
+#      variáveis MEM, pilha RPN, vetor de resultados, strings UART.
+#   3. Monta a seção .text com: habilitação VFP, código de cada linha
+#      (expressão + salvar resultado + LEDs + UART), exibição final HEX.
+#   4. Adiciona as sub-rotinas (UART, divisão, potência, HEX).
+# ==============================================================================
+ 
+def gerarAssembly(todas_linhas_tokens, codigo_assembly):
+    """
+    Gera o código Assembly ARMv7 completo para todas as linhas do programa.
+    
+    Args:
+        todas_linhas_tokens (list): Lista de listas de tokens, uma por linha.
+        codigo_assembly (list): Lista para armazenar o código Assembly gerado.
+    
+    Returns:
+        None: O código é adicionado à lista 'codigo_assembly' passada por referência.
+
+    """
+    from utils.gerar_assembly import ContextoAssembly, _gerar_codigo_expressao, double_para_words
+    from config import subroutines, data_section_config, text_section_config
+
+    ctx = ContextoAssembly()
+ 
+    # Etapa 1: Gera código Assembly para cada linha a partir dos tokens.
+    # _gerar_codigo_expressao percorre recursivamente o vetor de tokens.
+    codigos_linhas = []
+    for idx, tokens in enumerate(todas_linhas_tokens):
+        codigo_linha, _ = _gerar_codigo_expressao(tokens, 0, idx, ctx)
+        codigos_linhas.append(codigo_linha)
+ 
+    # Etapa 2: Seção .data
+    data_section = data_section_config
+ 
+    for valor_str, label in sorted(ctx.constantes.items(), key=lambda x: x[1]):
+        val = float(valor_str)
+        low, high = double_para_words(val)
+        data_section += [
+            f"    .align 3",
+            f"{label}:  @ double {valor_str}",
+            f"    .word 0x{low:08X}",
+            f"    .word 0x{high:08X}",
+        ]
+ 
+    zero_low, zero_high = double_para_words(0.0)
+    um_low, um_high = double_para_words(1.0)
+    milhao_low, milhao_high = double_para_words(1000000.0)
+ 
+    data_section += [
+        "",
+        "@ Constantes auxiliares",
+        "    .align 3",
+        "double_zero:",
+        f"    .word 0x{zero_low:08X}",
+        f"    .word 0x{zero_high:08X}",
+        "    .align 3",
+        "double_um:",
+        f"    .word 0x{um_low:08X}",
+        f"    .word 0x{um_high:08X}",
+        "    .align 3",
+        "double_milhao:",
+        f"    .word 0x{milhao_low:08X}",
+        f"    .word 0x{milhao_high:08X}",
+    ]
+ 
+    if ctx.variaveis_mem:
+        data_section += ["", "@ Variaveis de memoria"]
+        for nome in sorted(ctx.variaveis_mem):
+            data_section += [
+                f"    .align 3",
+                f"mem_{nome}:",
+                f"    .word 0x{zero_low:08X}",
+                f"    .word 0x{zero_high:08X}",
+            ]
+ 
+    num_linhas = len(todas_linhas_tokens)
+    tamanho_resultados = max(num_linhas * 8, 64)
+    data_section += [
+        "",
+        "    .align 3",
+        "pilha_rpn:",
+        "    .space 1024",
+        "",
+        "    .align 3",
+        "resultados:",
+        f"    .space {tamanho_resultados}",
+        "",
+        "    .align 2",
+        "print_buffer:",
+        "    .space 32",
+        "",
+        "str_linha:",
+        '    .asciz "Linha "',
+        "    .align 2",
+        "str_doispontos:",
+        '    .asciz ": "',
+        "    .align 2",
+        "str_newline:",
+        '    .asciz "\\n"',
+        "    .align 2",
+        "str_menos:",
+        '    .asciz "-"',
+        "    .align 2",
+        "str_ponto:",
+        '    .asciz "."',
+        "    .align 2",
+        "str_espaco:",
+        '    .asciz " "',
+        "    .align 2",
+        "str_fim:",
+        '    .asciz "\\n=== FIM ===\\n"',
+        "    .align 2",
+        "",
+        "tabela_7seg:",
+        "    .word 0x3F, 0x06, 0x5B, 0x4F, 0x66",
+        "    .word 0x6D, 0x7D, 0x07, 0x7F, 0x6F",
+        "",
+        ".equ LED_BASE,       0xFF200000",
+        ".equ HEX30_BASE,     0xFF200020",
+        ".equ HEX54_BASE,     0xFF200030",
+        ".equ SW_BASE,        0xFF200040",
+        ".equ BTN_BASE,       0xFF200050",
+        ".equ JTAG_UART_BASE, 0xFF201000",
+    ]
+ 
+    # Etapa 3: Seção .text
+    text_section = text_section_config
+ 
+    for idx, codigo_linha in enumerate(codigos_linhas):
+        text_section += [
+            f"    @ ========== Linha {idx} ==========",
+            f"    LDR R4, =pilha_rpn",
+            f"",
+        ]
+        text_section += codigo_linha
+        text_section += [
+            f"",
+            f"    @ Armazena resultado da linha {idx}",
+            f"    SUB R4, R4, #8",
+            f"    VLDR.F64 D0, [R4]",
+            f"    LDR R0, =resultados",
+            f"    ADD R0, R0, #{idx * 8}",
+            f"    VSTR.F64 D0, [R0]",
+            f"",
+            f"    @ LEDs: linha {idx + 1}",
+            f"    LDR R0, =LED_BASE",
+            f"    MOV R1, #{idx + 1}",
+            f"    STR R1, [R0]",
+            f"",
+            f"    @ HEX: mostra parte inteira do resultado da linha {idx}",
+            f"    LDR R0, =resultados",
+            f"    ADD R0, R0, #{idx * 8}",
+            f"    VLDR.F64 D0, [R0]",
+            f"    VABS.F64 D1, D0",
+            f"    VCVT.U32.F64 S4, D1",
+            f"    VMOV R0, S4",
+            f"    BL exibir_hex",
+            f"",
+            f"    @ UART: imprime 'Linha {idx}: <resultado>'",
+            f"    LDR R0, =str_linha",
+            f"    BL uart_print_string",
+            f"    MOV R0, #{idx}",
+            f"    BL uart_print_int",
+            f"    LDR R0, =str_doispontos",
+            f"    BL uart_print_string",
+            f"    LDR R0, =resultados",
+            f"    ADD R0, R0, #{idx * 8}",
+            f"    VLDR.F64 D0, [R0]",
+            f"    BL uart_print_double",
+            f"    LDR R0, =str_newline",
+            f"    BL uart_print_string",
+            f"",
+        ]
+ 
+    # Ao final, acende todos os LEDs e imprime FIM
+    text_section += [
+        f"    @ LEDs: todos acesos = fim",
+        f"    LDR R0, =LED_BASE",
+        f"    LDR R1, =0x3FF",
+        f"    STR R1, [R0]",
+        f"",
+        f"    LDR R0, =str_fim",
+        f"    BL uart_print_string",
+        f"",
+        f"fim:",
+        f"    B fim",
+        f"",
+    ]
+ 
+ 
+    codigo_assembly.extend(data_section)
+    codigo_assembly.extend(text_section)
+    codigo_assembly.extend(subroutines)
+
 
 def exibirResultados():
     pass
