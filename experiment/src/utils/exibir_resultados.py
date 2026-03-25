@@ -1,3 +1,5 @@
+import math
+
 # ==============================================================================
 # FUNÇÃO: exibirResultados
 # Exibe os resultados das expressões processadas.
