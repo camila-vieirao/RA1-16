@@ -1,18 +1,12 @@
-# ==============================================================================
-# Compilador RPN -> ARMv7 Assembly (Fase 1)
-# Analisador Léxico com Autômato Finito Determinístico e Gerador de Assembly
-#
-# Integrantes do grupo:
-#   - Anabelly Sthephany Paiva Montibeller | nabelly19
-#   - Aluno2 Nome Sobrenome (@github_user2)
-#   - Camila Vieira de Oliveira | camila-vieirao
-#   - Guilherme Ferraz | Guilhermeffda 
-#
-# Grupo: RA1-16
-# Instituição: Pontifícia Universidade Católica do Paraná
-# ==============================================================================
-
 import sys
+# INTEGRANTES:
+# Anabelly Sthephany Paiva Montibeller | nabelly19
+# andressa... | \
+# Camila Vieira de Oliveira | camila-vieirao
+# guilherme... | \
+#
+# NOME DO GRUPO: RA1-16
+
 from utils.gerar_assembly import (gerar_linha_assembly, build_assembly, reset_state)
 from utils.ler_arquivo import lerArquivo
 from utils.exibir_resultados import exibirResultados
