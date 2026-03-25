@@ -109,9 +109,9 @@ def _gerar_codigo_expressao(tokens, pos, indice_linha, ctx):
         codigo = [
             f"    @ Push numero {valor}",
             f"    LDR R0, ={label}",
-            f"    VLDR.F64 D0, [R0]",
-            f"    VSTR.F64 D0, [R4]",
-            f"    ADD R4, R4, #8",
+            "    VLDR.F64 D0, [R0]",
+            "    VSTR.F64 D0, [R4]",
+            "    ADD R4, R4, #8",
         ]
         return codigo, pos + 1
 
@@ -133,9 +133,9 @@ def _gerar_codigo_expressao(tokens, pos, indice_linha, ctx):
             codigo = [
                 f"    @ Recall memoria {nome_mem}",
                 f"    LDR R0, =mem_{nome_mem}",
-                f"    VLDR.F64 D0, [R0]",
-                f"    VSTR.F64 D0, [R4]",
-                f"    ADD R4, R4, #8",
+                "    VLDR.F64 D0, [R0]",
+                "    VSTR.F64 D0, [R4]",
+                "    ADD R4, R4, #8",
             ]
             return codigo, pos + 2  # Pula IDENT e ')'
 
@@ -154,11 +154,11 @@ def _gerar_codigo_expressao(tokens, pos, indice_linha, ctx):
             offset = indice_alvo * 8
             codigo = [
                 f"    @ RES {n} (resultado da linha {indice_alvo})",
-                f"    LDR R0, =resultados",
+                "    LDR R0, =resultados",
                 f"    ADD R0, R0, #{offset}",
-                f"    VLDR.F64 D0, [R0]",
-                f"    VSTR.F64 D0, [R4]",
-                f"    ADD R4, R4, #8",
+                "    VLDR.F64 D0, [R0]",
+                "    VSTR.F64 D0, [R4]",
+                "    ADD R4, R4, #8",
             ]
             pos += 2  # Pula NUM e RES
             pos += 1  # Pula ')'
@@ -179,13 +179,13 @@ def _gerar_codigo_expressao(tokens, pos, indice_linha, ctx):
             ctx.adicionar_variavel_mem(nome_mem)
             codigo = codigo_a + [
                 f"    @ Store em memoria {nome_mem}",
-                f"    SUB R4, R4, #8",
-                f"    VLDR.F64 D0, [R4]",
+                "    SUB R4, R4, #8",
+                "    VLDR.F64 D0, [R4]",
                 f"    LDR R0, =mem_{nome_mem}",
-                f"    VSTR.F64 D0, [R0]",
-                f"    @ Push o valor de volta",
-                f"    VSTR.F64 D0, [R4]",
-                f"    ADD R4, R4, #8",
+                "    VSTR.F64 D0, [R0]",
+                "    @ Push o valor de volta",
+                "    VSTR.F64 D0, [R4]",
+                "    ADD R4, R4, #8",
             ]
             pos += 1  # Pula IDENT
             pos += 1  # Pula ')'
@@ -215,62 +215,62 @@ def _gerar_codigo_expressao(tokens, pos, indice_linha, ctx):
         # 4. Empilha D2
         codigo_op = [
             f"    @ Operacao: {valor_op}",
-            f"    SUB R4, R4, #8",
-            f"    VLDR.F64 D1, [R4]",
-            f"    SUB R4, R4, #8",
-            f"    VLDR.F64 D0, [R4]",
+            "    SUB R4, R4, #8",
+            "    VLDR.F64 D1, [R4]",
+            "    SUB R4, R4, #8",
+            "    VLDR.F64 D0, [R4]",
         ]
 
         if valor_op == '+':
-            codigo_op += [f"    VADD.F64 D2, D0, D1"]
+            codigo_op += ["    VADD.F64 D2, D0, D1"]
         elif valor_op == '-':
-            codigo_op += [f"    VSUB.F64 D2, D0, D1"]
+            codigo_op += ["    VSUB.F64 D2, D0, D1"]
         elif valor_op == '*':
-            codigo_op += [f"    VMUL.F64 D2, D0, D1"]
+            codigo_op += ["    VMUL.F64 D2, D0, D1"]
         elif valor_op == '/':
-            codigo_op += [f"    VDIV.F64 D2, D0, D1"]
+            codigo_op += ["    VDIV.F64 D2, D0, D1"]
         elif valor_op == '//':
             codigo_op += [
-                f"    @ Divisao inteira",
-                f"    VCVT.S32.F64 S0, D0",
-                f"    VCVT.S32.F64 S2, D1",
-                f"    VMOV R0, S0",
-                f"    VMOV R1, S2",
-                f"    PUSH {{R4}}",
-                f"    BL div_inteira",
-                f"    POP {{R4}}",
-                f"    VMOV S4, R0",
-                f"    VCVT.F64.S32 D2, S4",
+                "    @ Divisao inteira",
+                "    VCVT.S32.F64 S0, D0",
+                "    VCVT.S32.F64 S2, D1",
+                "    VMOV R0, S0",
+                "    VMOV R1, S2",
+                "    PUSH {{R4}}",
+                "    BL div_inteira",
+                "    POP {{R4}}",
+                "    VMOV S4, R0",
+                "    VCVT.F64.S32 D2, S4",
             ]
         elif valor_op == '%':
             codigo_op += [
-                f"    @ Resto da divisao inteira",
-                f"    VCVT.S32.F64 S0, D0",
-                f"    VCVT.S32.F64 S2, D1",
-                f"    VMOV R0, S0",
-                f"    VMOV R1, S2",
-                f"    PUSH {{R4}}",
-                f"    MOV R3, R0",
-                f"    BL div_inteira",
-                f"    MUL R2, R0, R1",
-                f"    SUB R0, R3, R2",
-                f"    POP {{R4}}",
-                f"    VMOV S4, R0",
-                f"    VCVT.F64.S32 D2, S4",
+                "    @ Resto da divisao inteira",
+                "    VCVT.S32.F64 S0, D0",
+                "    VCVT.S32.F64 S2, D1",
+                "    VMOV R0, S0",
+                "    VMOV R1, S2",
+                "    PUSH {{R4}}",
+                "    MOV R3, R0",
+                "    BL div_inteira",
+                "    MUL R2, R0, R1",
+                "    SUB R0, R3, R2",
+                "    POP {{R4}}",
+                "    VMOV S4, R0",
+                "    VCVT.F64.S32 D2, S4",
             ]
         elif valor_op == '^':
             codigo_op += [
-                f"    @ Potenciacao",
-                f"    VCVT.S32.F64 S2, D1",
-                f"    VMOV R1, S2",
-                f"    PUSH {{R4}}",
-                f"    BL potencia_func",
-                f"    POP {{R4}}",
+                "    @ Potenciacao",
+                "    VCVT.S32.F64 S2, D1",
+                "    VMOV R1, S2",
+                "    PUSH {{R4}}",
+                "    BL potencia_func",
+                "    POP {{R4}}",
             ]
 
         codigo_op += [
-            f"    VSTR.F64 D2, [R4]",
-            f"    ADD R4, R4, #8",
+            "    VSTR.F64 D2, [R4]",
+            "    ADD R4, R4, #8",
         ]
 
         return codigo_a + codigo_b + codigo_op, pos

@@ -7,10 +7,6 @@
 # NOME DO GRUPO: RA1-16
 
 import sys
-import math
-import json
-from config import TOKEN_NUM, TOKEN_OP, TOKEN_LPAREN, TOKEN_RPAREN, TOKEN_RES, TOKEN_IDENT
- 
 
 # ==============================================================================
 # FUNÇÃO: lerArquivo
@@ -77,7 +73,7 @@ def gerarAssembly(todas_linhas_tokens, codigo_assembly):
 
     """
     from utils.gerar_assembly import ContextoAssembly, _gerar_codigo_expressao, double_para_words
-    from config import subroutines, data_section_config, text_section_config
+    from utils.constantes_assembly import SUBROUTINES_CONFIG, TEXT_SECTION_CONFIG, DATA_SECTION_CONFIG
 
     ctx = ContextoAssembly()
  
@@ -89,13 +85,13 @@ def gerarAssembly(todas_linhas_tokens, codigo_assembly):
         codigos_linhas.append(codigo_linha)
  
     # Etapa 2: Seção .data
-    data_section = data_section_config
+    data_section = DATA_SECTION_CONFIG
  
     for valor_str, label in sorted(ctx.constantes.items(), key=lambda x: x[1]):
         val = float(valor_str)
         low, high = double_para_words(val)
         data_section += [
-            f"    .align 3",
+            "    .align 3",
             f"{label}:  @ double {valor_str}",
             f"    .word 0x{low:08X}",
             f"    .word 0x{high:08X}",
@@ -126,7 +122,7 @@ def gerarAssembly(todas_linhas_tokens, codigo_assembly):
         data_section += ["", "@ Variaveis de memoria"]
         for nome in sorted(ctx.variaveis_mem):
             data_section += [
-                f"    .align 3",
+                "    .align 3",
                 f"mem_{nome}:",
                 f"    .word 0x{zero_low:08X}",
                 f"    .word 0x{zero_high:08X}",
@@ -183,69 +179,70 @@ def gerarAssembly(todas_linhas_tokens, codigo_assembly):
     ]
  
     # Etapa 3: Seção .text
-    text_section = text_section_config
+    text_section = TEXT_SECTION_CONFIG
  
     for idx, codigo_linha in enumerate(codigos_linhas):
         text_section += [
             f"    @ ========== Linha {idx} ==========",
-            f"    LDR R4, =pilha_rpn",
-            f"",
+            "    LDR R4, =pilha_rpn",
+            "",
         ]
         text_section += codigo_linha
         text_section += [
-            f"",
+            "",
             f"    @ Armazena resultado da linha {idx}",
-            f"    SUB R4, R4, #8",
-            f"    VLDR.F64 D0, [R4]",
-            f"    LDR R0, =resultados",
+            "    SUB R4, R4, #8",
+            "    VLDR.F64 D0, [R4]",
+            "    LDR R0, =resultados",
             f"    ADD R0, R0, #{idx * 8}",
-            f"    VSTR.F64 D0, [R0]",
-            f"",
+            "    VSTR.F64 D0, [R0]",
+            "",
             f"    @ LEDs: linha {idx + 1}",
-            f"    LDR R0, =LED_BASE",
+            "    LDR R0, =LED_BASE",
             f"    MOV R1, #{idx + 1}",
-            f"    STR R1, [R0]",
-            f"",
+            "    STR R1, [R0]",
+            "",
             f"    @ HEX: mostra parte inteira do resultado da linha {idx}",
-            f"    LDR R0, =resultados",
+            "    LDR R0, =resultados",
             f"    ADD R0, R0, #{idx * 8}",
-            f"    VLDR.F64 D0, [R0]",
-            f"    VABS.F64 D1, D0",
-            f"    VCVT.U32.F64 S4, D1",
-            f"    VMOV R0, S4",
-            f"    BL exibir_hex",
-            f"",
+            "    VLDR.F64 D0, [R0]",
+            "    VABS.F64 D1, D0",
+            "    VCVT.U32.F64 S4, D1",
+            "    VMOV R0, S4",
+            "    BL exibir_hex",
+            "",
             f"    @ UART: imprime 'Linha {idx}: <resultado>'",
-            f"    LDR R0, =str_linha",
-            f"    BL uart_print_string",
+            "    LDR R0, =str_linha",
+            "    BL uart_print_string",
             f"    MOV R0, #{idx}",
-            f"    BL uart_print_int",
-            f"    LDR R0, =str_doispontos",
-            f"    BL uart_print_string",
-            f"    LDR R0, =resultados",
+            "    BL uart_print_int",
+            "    LDR R0, =str_doispontos",
+            "    BL uart_print_string",
+            "    LDR R0, =resultados",
             f"    ADD R0, R0, #{idx * 8}",
-            f"    VLDR.F64 D0, [R0]",
-            f"    BL uart_print_double",
-            f"    LDR R0, =str_newline",
-            f"    BL uart_print_string",
-            f"",
+            "    VLDR.F64 D0, [R0]",
+            "    BL uart_print_double",
+            "    LDR R0, =str_newline",
+            "    BL uart_print_string",
+            "",
         ]
  
     # Ao final, acende todos os LEDs e imprime FIM
     text_section += [
-        f"    @ LEDs: todos acesos = fim",
-        f"    LDR R0, =LED_BASE",
-        f"    LDR R1, =0x3FF",
-        f"    STR R1, [R0]",
-        f"",
-        f"    LDR R0, =str_fim",
-        f"    BL uart_print_string",
-        f"",
-        f"fim:",
-        f"    B fim",
-        f"",
+        "    @ LEDs: todos acesos = fim",
+        "    LDR R0, =LED_BASE",
+        "    LDR R1, =0x3FF",
+        "    STR R1, [R0]",
+        "",
+        "    LDR R0, =str_fim",
+        "    BL uart_print_string",
+        "",
+        "fim:",
+        "    B fim",
+        "",
     ]
  
+    subroutines = SUBROUTINES_CONFIG
  
     codigo_assembly.extend(data_section)
     codigo_assembly.extend(text_section)
@@ -260,8 +257,27 @@ if __name__ == "__main__":
     if len(sys.argv) < 2:
         print(f"Uso: python {sys.argv[0]} <arquivo_entrada>")
         sys.exit(1)
-    arquivo = sys.argv[1]
-    lerArquivo(arquivo)
+
+    nome_arquivo = sys.argv[1]
+    linhas = []
+    if not lerArquivo(nome_arquivo, linhas):
+        sys.exit(1)
+
+    print(f"\n{'=' * 60}")
+    print("GERACAO DE ASSEMBLY ARMv7")
+    print(f"{'=' * 60}")
+    codigo_assembly = []
+    mock_todas_linhas_tokens = [[('LPAREN', '('), ('NUM', '1.5'), ('NUM', '2.5'), ('OP', '+'), ('RPAREN', ')')],[('LPAREN', '('), ('NUM', '1'), ('RES', 'RES'), ('RPAREN', ')')], [('LPAREN', '('), ('LPAREN', '('), ('NUM', '2.0'), ('NUM', '3.0'), ('OP', '*'), ('RPAREN', ')'), ('LPAREN', '('), ('NUM', '4.0'), ('NUM', '5.0'), ('OP', '+'), ('RPAREN', ')'), ('OP', '/'), ('RPAREN', ')')]]
+    gerarAssembly(mock_todas_linhas_tokens, codigo_assembly)
+
+    nome_base = nome_arquivo.rsplit('.', 1)[0] if '.' in nome_arquivo else nome_arquivo
+    nome_assembly = nome_base + ".s"
+
+    with open(nome_assembly, 'w', encoding='utf-8') as f:
+        for linha in codigo_assembly:
+            f.write(linha + '\n')
+    print(f"  Assembly: {nome_assembly} ({len(codigo_assembly)} linhas)")
+
 
 #     parseExpressao()
 #     executarExpressao()
