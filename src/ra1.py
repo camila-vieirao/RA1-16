@@ -7,6 +7,7 @@
 # NOME DO GRUPO: RA1-16
 
 import sys
+from config import TOKEN_NUM, TOKEN_OP, TOKEN_LPAREN, TOKEN_RPAREN, TOKEN_RES, TOKEN_IDENT
 
 # ==============================================================================
 # FUNÇÃO: lerArquivo
@@ -36,18 +37,91 @@ def lerArquivo(nome_arquivo, linhas):
         return False
 
 
-def parseExpressao(linha: str, tokens: list = None) -> list:
-    """Faz a análise léxica de uma linha e retorna o vetor de tokens.
-    Delega para o analisador léxico (AFD) em utils/lexico_afd.py.
-
-    Args:
-        linha (str): Linha de código-fonte a ser analisada.
-        tokens (list, optional): Lista para armazenar os tokens gerados.
-    Returns:
-        list: Vetor de tokens gerados pelo analisador léxico.
+def parseExpressao(linha, tokens):
     """
-    from utils.lexico_afd import parseExpressao as _lexico_parseExpressao
-    return _lexico_parseExpressao(linha, tokens)
+    Função principal do analisador léxico.
+    Percorre a linha caractere a caractere, delegando a classificação
+    para a função do estado corrente do AFD.
+    
+    Args:
+        linha (str): Linha de texto com expressão RPN.
+        tokens (list): Lista onde os tokens serão adicionados (tuplas (tipo, valor)).
+
+    Returns:
+        bool: True se a análise léxica foi bem sucedida, False caso contrário.
+    """
+    from utils.parse_expressao import (
+        estado_inicial, estado_numero, estado_numero_decimal,
+        estado_barra, estado_identificador
+    )
+ 
+    # Contexto compartilhado entre todos os estados do AFD
+    contexto = {
+        'tokens': tokens,         # Lista de tokens (saída)
+        'token_atual': '',        # Acumulador do token em construção
+        'erro': None,             # Mensagem de erro (se houver)
+        'posicao': 0,             # Posição do caractere na linha
+        'reprocessar': False,     # Flag: relê o caractere atual no novo estado
+        'nivel_parenteses': 0     # Contador para detectar parênteses desbalanceados
+    }
+ 
+    # 'estado_corrente' é uma VARIÁVEL que guarda a referência para a função
+    # do estado ativo. Começa apontando para estado_inicial (q0).
+    # Em Python, funções são objetos — podemos guardá-las em variáveis.
+    estado_corrente = estado_inicial
+ 
+    i = 0
+    while i < len(linha):
+        char = linha[i]
+        contexto['posicao'] = i
+        contexto['reprocessar'] = False
+ 
+        # Chama a função do estado ativo, passando o caractere atual.
+        # A função retorna a PRÓXIMA função de estado (pode ser ela mesma).
+        proximo_estado = estado_corrente(char, contexto)
+ 
+        # Se retornou None, houve erro léxico
+        if proximo_estado is None:
+            if contexto['erro']:
+                print(f"  ERRO LEXICO: {contexto['erro']}")
+            return False
+ 
+        # Atualiza a variável para apontar para o novo estado
+        estado_corrente = proximo_estado
+ 
+        # Se reprocessar=True, NÃO avança i — o mesmo caractere será
+        # processado novamente, mas agora pelo novo estado
+        if contexto['reprocessar']:
+            contexto['reprocessar'] = False
+            continue
+ 
+        i += 1
+ 
+    # Fim da linha: se havia um token sendo acumulado, emite-o
+    if contexto['token_atual'] != '':
+        if estado_corrente == estado_numero or estado_corrente == estado_numero_decimal:
+            tokens.append((TOKEN_NUM, contexto['token_atual']))
+        elif estado_corrente == estado_identificador:
+            ident = contexto['token_atual']
+            if ident == 'RES':
+                tokens.append((TOKEN_RES, 'RES'))
+            else:
+                tokens.append((TOKEN_IDENT, ident))
+        elif estado_corrente == estado_barra:
+            tokens.append((TOKEN_OP, '/'))
+        contexto['token_atual'] = ''
+ 
+    # Verificação pós-AFD: parênteses desbalanceados.
+    # O contador nivel_parenteses é atualizado pelos estados do AFD:
+    #   - Cada '(' incrementa o contador
+    #   - Cada ')' decrementa (e se ficar < 0, o estado já retorna erro inline)
+    # Aqui verificamos se sobraram parênteses abertos sem fechamento.
+    if contexto['nivel_parenteses'] != 0:
+        print(f"  ERRO LEXICO: Parenteses desbalanceados "
+              f"({contexto['nivel_parenteses']} parentese(s) aberto(s) sem fechamento)")
+        return False
+ 
+    return True
 
 def executarExpressao():
     pass
@@ -279,13 +353,12 @@ if __name__ == "__main__":
     codigo_assembly = []
 
     todas_linhas_tokens = []
-    for linha in linhas:
-        try:
-            tokens = parseExpressao(linha)
-            todas_linhas_tokens.append(tokens)
-        except Exception as e:
-            print(f"ERRO lexico na linha '{linha}': {e}")
+    for idx, linha in enumerate(linhas):
+        tokens = []
+        print(f"\nLinha {idx + 1}: {linha}")
+        if not parseExpressao(linha, tokens):
             sys.exit(1)
+        todas_linhas_tokens.append(tokens)
 
     gerarAssembly(todas_linhas_tokens, codigo_assembly)
 
