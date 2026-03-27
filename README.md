@@ -33,4 +33,4 @@ cd RA1-16/src
 python ra1.py <arquivo-de-teste>.txt
 ```
 
-> atenção: Pastas legacy e testing são apenas para guardar histórico do trabalho.
+> atenção: Pastas legacy e experiment são apenas para guardar histórico do trabalho.
