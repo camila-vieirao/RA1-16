@@ -25,10 +25,12 @@ git clone https://github.com/camila-vieirao/RA1-16.git
 ```
 2. Navegue até a pasta do projeto:
 ``` bash
-cd RA1-16
+cd RA1-16/src
 ```
 
 3. Para rodar o programa, execute o comando: 
 ``` bash
 python ra1.py <arquivo-de-teste>.txt
 ```
+
+> atenção: Pastas legacy e testing são apenas para guardar histórico do trabalho.
