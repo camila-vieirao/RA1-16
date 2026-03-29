@@ -11,57 +11,57 @@
 
 @ Constantes double (IEEE 754, codificadas como pares de .word)
     .align 3
-const_0:  @ double 3.14
-    .word 0x51EB851F
-    .word 0x40091EB8
-    .align 3
-const_1:  @ double 2.0
+const_0:  @ double 5.0
     .word 0x00000000
-    .word 0x40000000
+    .word 0x40140000
     .align 3
-const_10:  @ double 1.0
+const_1:  @ double 3.0
     .word 0x00000000
-    .word 0x3FF00000
+    .word 0x40080000
     .align 3
-const_11:  @ double 8.0
+const_10:  @ double 2.5
     .word 0x00000000
-    .word 0x40200000
+    .word 0x40040000
+    .align 3
+const_11:  @ double 3.5
+    .word 0x00000000
+    .word 0x400C0000
     .align 3
 const_12:  @ double 1.5
     .word 0x00000000
     .word 0x3FF80000
     .align 3
-const_2:  @ double 10.5
+const_2:  @ double 8.0
     .word 0x00000000
-    .word 0x40250000
+    .word 0x40200000
     .align 3
-const_3:  @ double 3.5
+const_3:  @ double 2.0
     .word 0x00000000
-    .word 0x400C0000
+    .word 0x40000000
     .align 3
-const_4:  @ double 4.0
+const_4:  @ double 100.0
     .word 0x00000000
-    .word 0x40100000
+    .word 0x40590000
     .align 3
-const_5:  @ double 2.5
-    .word 0x00000000
-    .word 0x40040000
-    .align 3
-const_6:  @ double 9.0
-    .word 0x00000000
-    .word 0x40220000
-    .align 3
-const_7:  @ double 3.0
-    .word 0x00000000
-    .word 0x40080000
-    .align 3
-const_8:  @ double 10
+const_5:  @ double 10.0
     .word 0x00000000
     .word 0x40240000
     .align 3
-const_9:  @ double 3
+const_6:  @ double 7
+    .word 0x00000000
+    .word 0x401C0000
+    .align 3
+const_7:  @ double 3
     .word 0x00000000
     .word 0x40080000
+    .align 3
+const_8:  @ double 2
+    .word 0x00000000
+    .word 0x40000000
+    .align 3
+const_9:  @ double 3.14
+    .word 0x51EB851F
+    .word 0x40091EB8
 
 @ Constantes auxiliares
     .align 3
@@ -79,7 +79,7 @@ double_milhao:
 
 @ Variaveis de memoria
     .align 3
-mem_VALOR:
+mem_PI:
     .word 0x00000000
     .word 0x00000000
 
@@ -146,12 +146,12 @@ _start:
     @ ========== Linha 0 ==========
     LDR R4, =pilha_rpn
 
-    @ Push numero 3.14
+    @ Push numero 5.0
     LDR R0, =const_0
     VLDR.F64 D0, [R0]
     VSTR.F64 D0, [R4]
     ADD R4, R4, #8
-    @ Push numero 2.0
+    @ Push numero 3.0
     LDR R0, =const_1
     VLDR.F64 D0, [R0]
     VSTR.F64 D0, [R4]
@@ -203,22 +203,22 @@ _start:
     @ ========== Linha 1 ==========
     LDR R4, =pilha_rpn
 
-    @ Push numero 10.5
+    @ Push numero 8.0
     LDR R0, =const_2
     VLDR.F64 D0, [R0]
     VSTR.F64 D0, [R4]
     ADD R4, R4, #8
-    @ Push numero 3.5
+    @ Push numero 2.0
     LDR R0, =const_3
     VLDR.F64 D0, [R0]
     VSTR.F64 D0, [R4]
     ADD R4, R4, #8
-    @ Operacao: -
+    @ Operacao: *
     SUB R4, R4, #8
     VLDR.F64 D1, [R4]
     SUB R4, R4, #8
     VLDR.F64 D0, [R4]
-    VSUB.F64 D2, D0, D1
+    VMUL.F64 D2, D0, D1
     VSTR.F64 D2, [R4]
     ADD R4, R4, #8
 
@@ -260,23 +260,11 @@ _start:
     @ ========== Linha 2 ==========
     LDR R4, =pilha_rpn
 
-    @ Push numero 4.0
-    LDR R0, =const_4
+    @ RES 1 (resultado da linha 1)
+    LDR R0, =resultados
+    ADD R0, R0, #8
     VLDR.F64 D0, [R0]
     VSTR.F64 D0, [R4]
-    ADD R4, R4, #8
-    @ Push numero 2.5
-    LDR R0, =const_5
-    VLDR.F64 D0, [R0]
-    VSTR.F64 D0, [R4]
-    ADD R4, R4, #8
-    @ Operacao: *
-    SUB R4, R4, #8
-    VLDR.F64 D1, [R4]
-    SUB R4, R4, #8
-    VLDR.F64 D0, [R4]
-    VMUL.F64 D2, D0, D1
-    VSTR.F64 D2, [R4]
     ADD R4, R4, #8
 
     @ Armazena resultado da linha 2
@@ -317,23 +305,11 @@ _start:
     @ ========== Linha 3 ==========
     LDR R4, =pilha_rpn
 
-    @ Push numero 9.0
-    LDR R0, =const_6
+    @ RES 2 (resultado da linha 1)
+    LDR R0, =resultados
+    ADD R0, R0, #8
     VLDR.F64 D0, [R0]
     VSTR.F64 D0, [R4]
-    ADD R4, R4, #8
-    @ Push numero 3.0
-    LDR R0, =const_7
-    VLDR.F64 D0, [R0]
-    VSTR.F64 D0, [R4]
-    ADD R4, R4, #8
-    @ Operacao: /
-    SUB R4, R4, #8
-    VLDR.F64 D1, [R4]
-    SUB R4, R4, #8
-    VLDR.F64 D0, [R4]
-    VDIV.F64 D2, D0, D1
-    VSTR.F64 D2, [R4]
     ADD R4, R4, #8
 
     @ Armazena resultado da linha 3
@@ -374,31 +350,22 @@ _start:
     @ ========== Linha 4 ==========
     LDR R4, =pilha_rpn
 
-    @ Push numero 10
-    LDR R0, =const_8
+    @ Push numero 100.0
+    LDR R0, =const_4
     VLDR.F64 D0, [R0]
     VSTR.F64 D0, [R4]
     ADD R4, R4, #8
-    @ Push numero 3
-    LDR R0, =const_9
+    @ Push numero 10.0
+    LDR R0, =const_5
     VLDR.F64 D0, [R0]
     VSTR.F64 D0, [R4]
     ADD R4, R4, #8
-    @ Operacao: //
+    @ Operacao: /
     SUB R4, R4, #8
     VLDR.F64 D1, [R4]
     SUB R4, R4, #8
     VLDR.F64 D0, [R4]
-    @ Divisao inteira
-    VCVT.S32.F64 S0, D0
-    VCVT.S32.F64 S2, D1
-    VMOV R0, S0
-    VMOV R1, S2
-    PUSH {R4}
-    BL div_inteira
-    POP {R4}
-    VMOV S4, R0
-    VCVT.F64.S32 D2, S4
+    VDIV.F64 D2, D0, D1
     VSTR.F64 D2, [R4]
     ADD R4, R4, #8
 
@@ -440,31 +407,28 @@ _start:
     @ ========== Linha 5 ==========
     LDR R4, =pilha_rpn
 
-    @ Push numero 10
-    LDR R0, =const_8
+    @ Push numero 7
+    LDR R0, =const_6
     VLDR.F64 D0, [R0]
     VSTR.F64 D0, [R4]
     ADD R4, R4, #8
     @ Push numero 3
-    LDR R0, =const_9
+    LDR R0, =const_7
     VLDR.F64 D0, [R0]
     VSTR.F64 D0, [R4]
     ADD R4, R4, #8
-    @ Operacao: %
+    @ Operacao: //
     SUB R4, R4, #8
     VLDR.F64 D1, [R4]
     SUB R4, R4, #8
     VLDR.F64 D0, [R4]
-    @ Resto da divisao inteira
+    @ Divisao inteira
     VCVT.S32.F64 S0, D0
     VCVT.S32.F64 S2, D1
     VMOV R0, S0
     VMOV R1, S2
     PUSH {R4}
-    MOV R3, R0
     BL div_inteira
-    MUL R2, R0, R1
-    SUB R0, R3, R2
     POP {R4}
     VMOV S4, R0
     VCVT.F64.S32 D2, S4
@@ -509,27 +473,34 @@ _start:
     @ ========== Linha 6 ==========
     LDR R4, =pilha_rpn
 
-    @ Push numero 2.0
-    LDR R0, =const_1
+    @ Push numero 7
+    LDR R0, =const_6
     VLDR.F64 D0, [R0]
     VSTR.F64 D0, [R4]
     ADD R4, R4, #8
     @ Push numero 3
-    LDR R0, =const_9
+    LDR R0, =const_7
     VLDR.F64 D0, [R0]
     VSTR.F64 D0, [R4]
     ADD R4, R4, #8
-    @ Operacao: ^
+    @ Operacao: %
     SUB R4, R4, #8
     VLDR.F64 D1, [R4]
     SUB R4, R4, #8
     VLDR.F64 D0, [R4]
-    @ Potenciacao
+    @ Resto da divisao inteira
+    VCVT.S32.F64 S0, D0
     VCVT.S32.F64 S2, D1
+    VMOV R0, S0
     VMOV R1, S2
     PUSH {R4}
-    BL potencia_func
+    MOV R3, R0
+    BL div_inteira
+    MUL R2, R0, R1
+    SUB R0, R3, R2
     POP {R4}
+    VMOV S4, R0
+    VCVT.F64.S32 D2, S4
     VSTR.F64 D2, [R4]
     ADD R4, R4, #8
 
@@ -571,18 +542,28 @@ _start:
     @ ========== Linha 7 ==========
     LDR R4, =pilha_rpn
 
-    @ Push numero 10.5
-    LDR R0, =const_2
+    @ Push numero 5.0
+    LDR R0, =const_0
     VLDR.F64 D0, [R0]
     VSTR.F64 D0, [R4]
     ADD R4, R4, #8
-    @ Store em memoria VALOR
+    @ Push numero 2
+    LDR R0, =const_8
+    VLDR.F64 D0, [R0]
+    VSTR.F64 D0, [R4]
+    ADD R4, R4, #8
+    @ Operacao: ^
+    SUB R4, R4, #8
+    VLDR.F64 D1, [R4]
     SUB R4, R4, #8
     VLDR.F64 D0, [R4]
-    LDR R0, =mem_VALOR
-    VSTR.F64 D0, [R0]
-    @ Push o valor de volta
-    VSTR.F64 D0, [R4]
+    @ Potenciacao
+    VCVT.S32.F64 S2, D1
+    VMOV R1, S2
+    PUSH {R4}
+    BL potencia_func
+    POP {R4}
+    VSTR.F64 D2, [R4]
     ADD R4, R4, #8
 
     @ Armazena resultado da linha 7
@@ -623,9 +604,17 @@ _start:
     @ ========== Linha 8 ==========
     LDR R4, =pilha_rpn
 
-    @ Recall memoria VALOR
-    LDR R0, =mem_VALOR
+    @ Push numero 3.14
+    LDR R0, =const_9
     VLDR.F64 D0, [R0]
+    VSTR.F64 D0, [R4]
+    ADD R4, R4, #8
+    @ Store em memoria PI
+    SUB R4, R4, #8
+    VLDR.F64 D0, [R4]
+    LDR R0, =mem_PI
+    VSTR.F64 D0, [R0]
+    @ Push o valor de volta
     VSTR.F64 D0, [R4]
     ADD R4, R4, #8
 
@@ -667,9 +656,8 @@ _start:
     @ ========== Linha 9 ==========
     LDR R4, =pilha_rpn
 
-    @ RES 1 (resultado da linha 8)
-    LDR R0, =resultados
-    ADD R0, R0, #64
+    @ Recall memoria PI
+    LDR R0, =mem_PI
     VLDR.F64 D0, [R0]
     VSTR.F64 D0, [R4]
     ADD R4, R4, #8
@@ -712,41 +700,15 @@ _start:
     @ ========== Linha 10 ==========
     LDR R4, =pilha_rpn
 
-    @ Push numero 3.0
-    LDR R0, =const_7
+    @ Recall memoria PI
+    LDR R0, =mem_PI
     VLDR.F64 D0, [R0]
     VSTR.F64 D0, [R4]
-    ADD R4, R4, #8
-    @ Push numero 4.0
-    LDR R0, =const_4
-    VLDR.F64 D0, [R0]
-    VSTR.F64 D0, [R4]
-    ADD R4, R4, #8
-    @ Operacao: +
-    SUB R4, R4, #8
-    VLDR.F64 D1, [R4]
-    SUB R4, R4, #8
-    VLDR.F64 D0, [R4]
-    VADD.F64 D2, D0, D1
-    VSTR.F64 D2, [R4]
     ADD R4, R4, #8
     @ Push numero 2.0
-    LDR R0, =const_1
+    LDR R0, =const_3
     VLDR.F64 D0, [R0]
     VSTR.F64 D0, [R4]
-    ADD R4, R4, #8
-    @ Push numero 1.0
-    LDR R0, =const_10
-    VLDR.F64 D0, [R0]
-    VSTR.F64 D0, [R4]
-    ADD R4, R4, #8
-    @ Operacao: -
-    SUB R4, R4, #8
-    VLDR.F64 D1, [R4]
-    SUB R4, R4, #8
-    VLDR.F64 D0, [R4]
-    VSUB.F64 D2, D0, D1
-    VSTR.F64 D2, [R4]
     ADD R4, R4, #8
     @ Operacao: *
     SUB R4, R4, #8
@@ -795,31 +757,13 @@ _start:
     @ ========== Linha 11 ==========
     LDR R4, =pilha_rpn
 
-    @ Push numero 8.0
+    @ Push numero 2.5
+    LDR R0, =const_10
+    VLDR.F64 D0, [R0]
+    VSTR.F64 D0, [R4]
+    ADD R4, R4, #8
+    @ Push numero 3.5
     LDR R0, =const_11
-    VLDR.F64 D0, [R0]
-    VSTR.F64 D0, [R4]
-    ADD R4, R4, #8
-    @ Push numero 2.0
-    LDR R0, =const_1
-    VLDR.F64 D0, [R0]
-    VSTR.F64 D0, [R4]
-    ADD R4, R4, #8
-    @ Operacao: /
-    SUB R4, R4, #8
-    VLDR.F64 D1, [R4]
-    SUB R4, R4, #8
-    VLDR.F64 D0, [R4]
-    VDIV.F64 D2, D0, D1
-    VSTR.F64 D2, [R4]
-    ADD R4, R4, #8
-    @ Push numero 3.0
-    LDR R0, =const_7
-    VLDR.F64 D0, [R0]
-    VSTR.F64 D0, [R4]
-    ADD R4, R4, #8
-    @ Push numero 1.5
-    LDR R0, =const_12
     VLDR.F64 D0, [R0]
     VSTR.F64 D0, [R4]
     ADD R4, R4, #8
@@ -829,6 +773,24 @@ _start:
     SUB R4, R4, #8
     VLDR.F64 D0, [R4]
     VADD.F64 D2, D0, D1
+    VSTR.F64 D2, [R4]
+    ADD R4, R4, #8
+    @ Push numero 1.5
+    LDR R0, =const_12
+    VLDR.F64 D0, [R0]
+    VSTR.F64 D0, [R4]
+    ADD R4, R4, #8
+    @ Push numero 2.0
+    LDR R0, =const_3
+    VLDR.F64 D0, [R0]
+    VSTR.F64 D0, [R4]
+    ADD R4, R4, #8
+    @ Operacao: *
+    SUB R4, R4, #8
+    VLDR.F64 D1, [R4]
+    SUB R4, R4, #8
+    VLDR.F64 D0, [R4]
+    VMUL.F64 D2, D0, D1
     VSTR.F64 D2, [R4]
     ADD R4, R4, #8
     @ Operacao: -
